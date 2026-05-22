@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>社交安全距離：你的刺蝟指數</title>
+  <style>
+    :root {
+      --bg: #121920;
+      --surface: #19232b;
+      --surface-soft: #222f3d;
+      --text: #e9eef3;
+      --muted: #9aa5b1;
+      --accent: #7a99b3;
+      --accent-strong: #b1c7d6;
+      --danger: #d96f6f;
+      --positive: #6abf92;
+      --radius: 24px;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, rgba(134, 154, 178, 0.18), transparent 28%),
+                  radial-gradient(circle at bottom right, rgba(167, 188, 203, 0.12), transparent 25%),
+                  linear-gradient(180deg, #10161d 0%, #121a22 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .frame {
+      width: min(100%, 760px);
+      padding: 28px;
+      border-radius: var(--radius);
+      background: rgba(24, 36, 48, 0.88);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      line-height: 1.05;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.7;
+    }
+
+    .progress-wrap {
+      margin: 0 0 26px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7a99b3, #b1c7d6);
+      transition: width 0.45s ease;
+    }
+
+    .card {
+      background: rgba(15, 24, 33, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 28px;
+      padding: 28px;
+      position: relative;
+      min-height: 320px;
+    }
+
+    .question-number {
+      margin: 0 0 10px;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+      letter-spacing: 0.14em;
+    }
+
+    .question-text {
+      margin: 0 0 24px;
+      font-size: clamp(1.1rem, 1.4vw, 1.45rem);
+      line-height: 1.6;
+    }
+
+    .options {
+      display: grid;
+      gap: 14px;
+    }
+
+    .option {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      padding: 18px 20px;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .option:hover,
+    .option:focus-visible {
+      transform: translateY(-2px);
+      background: rgba(121, 148, 174, 0.16);
+      border-color: rgba(177, 199, 214, 0.35);
+      outline: none;
+    }
+
+    .option span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent-strong);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .button {
+      border: none;
+      background: linear-gradient(135deg, #5b7b91, #8ca7bc);
+      color: #fff;
+      border-radius: 999px;
+      padding: 14px 22px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
+      margin-top: 24px;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 30px rgba(47, 85, 118, 0.18);
+    }
+
+    .small-text {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .fade-enter {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    .fade-enter-active {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .fade-exit {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-exit-active {
+      opacity: 0;
+      transform: translateY(-16px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .result-title {
+      margin: 0 0 12px;
+      font-size: clamp(1.8rem, 2.5vw, 2.3rem);
+    }
+
+    .badge {
+      display: inline-flex;
+      margin-bottom: 18px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(121, 148, 174, 0.16);
+      color: #cdd8e7;
+      font-size: 0.95rem;
+    }
+
+    .result-section {
+      margin-top: 20px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .box {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .box h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      color: var(--accent-strong);
+    }
+
+    .box p,
+    .box li {
+      margin: 0;
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 0.98rem;
+    }
+
+    .box ul {
+      margin: 0;
+      padding-left: 18px;
+      list-style: disc;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 18px;
+      }
+      .frame {
+        padding: 20px;
+      }
+      .card {
+        padding: 22px;
+      }
+      .option {
+        padding: 16px 18px;
+      }
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame" id="app">
+    <div class="card fade-enter fade-enter-active" id="intro-screen">
+      <p class="question-number">心理測驗 · 新公寓場景</p>
+      <h1 class="title">社交安全距離：你的刺蝟指數</h1>
+      <p class="subtitle">你剛搬進一間完全屬於自己的新公寓。透過你布置空間與回應外來干擾的方式，測出你的社交防衛距離。</p>
+      <div class="progress-wrap">
+        <div class="progress" id="progress-bar"></div>
+      </div>
+      <button class="button" id="start-btn">開始測驗</button>
+      <p class="small-text">完成 4 題情境題，系統會自動計算結果並顯示屬於你的刺蝟型態。</p>
+    </div>
+
+    <div class="card" id="quiz-card" style="display:none; opacity:0;">
+      <p class="question-number" id="question-count"></p>
+      <h2 class="question-text" id="question-text"></h2>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="card" id="result-card" style="display:none; opacity:0;">
+      <p class="question-number">測驗結果</p>
+      <div class="badge" id="result-badge"></div>
+      <h2 class="result-title" id="result-title"></h2>
+      <p class="subtitle" id="result-summary"></p>
+      <div class="result-section">
+        <div class="box">
+          <h3>特質描述</h3>
+          <p id="result-description"></p>
+        </div>
+        <div class="box">
+          <h3>絕對雷區</h3>
+          <ul id="result-avoid"></ul>
+        </div>
+        <div class="box">
+          <h3>相處指南</h3>
+          <ul id="result-tips"></ul>
+        </div>
+      </div>
+      <button class="button" id="restart-btn">重新測試</button>
+    </div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: '搬進新家後，你最先花心思佈置、覺得必須最完美的區域是？',
+        options: [
+          { label: '裝上厚實遮光、能阻擋外面視線的窗簾。', value: 3 },
+          { label: '擺一張最舒服、只容得下自己的單人沙發。', value: 1 },
+          { label: '挑選一盞溫暖的燈，和一台能放整夜音樂的音響。', value: 1 },
+          { label: '擺滿各式各樣盲盒公仔與收藏的展示櫃。', value: 2 }
+        ]
+      },
+      {
+        question: '深夜你正沉浸在自己的世界裡，手機突然連續震動，是某個不熟的同事/同學傳來好幾條長訊息，你的第一反應是？',
+        options: [
+          { label: '有點煩躁，假裝沒看到，明天睡醒再說。（冷處理）', value: 3 },
+          { label: '立馬點開，雖然累但還是習慣性地秒回，維持禮貌。（面子型社交）', value: 1 },
+          { label: '只看通知列的預覽，確認不是急事就放著，繼續做自己的事。（劃清界線）', value: 2 },
+          { label: '瞬間感到一陣壓力，開始焦慮對方找你有什麼事。（精神內耗）', value: 3 }
+        ]
+      },
+      {
+        question: '隔壁搬來了新鄰居，在走廊遇到時，對方非常熱情地主動找你聊天、問東問西，甚至想加你的通訊軟體，你會？',
+        options: [
+          { label: '保持尷尬微笑，敷衍兩句後指著手機說「我有急事」快步離開。', value: 3 },
+          { label: '大方交換聯絡方式，但心裡默默決定回去後把他丟到「不看他動態」的群組。', value: 2 },
+          { label: '禮貌但客套地拒絕：「不好意思，我私底下比較少用這個。」', value: 1 },
+          { label: '雖然不自在，但因為不知道怎麼拒絕，還是加了，回去後感到有些懊惱。', value: 3 }
+        ]
+      },
+      {
+        question: '不得不參加了一場大型的社交聚會，當你回到家、關上門的那一刻，你通常會做什麼來「恢復防護罩」？',
+        options: [
+          { label: '窩在床上瘋狂刷手機，什麼都不想，藉此切斷與現實的連結。', value: 3 },
+          { label: '默默坐在黑暗或安靜的房間裡，享受「沒有任何人打擾」的絕對安靜。', value: 1 },
+          { label: '找最親密、可以完全做自己的人（或寵物）抱一抱、說說話。', value: 1 },
+          { label: '把剛才聚會上的互動在腦海裡倒帶一遍，檢討自己有沒有說錯話。', value: 2 }
+        ]
+      }
+    ];
+
+    const results = [
+      {
+        range: [11, 12],
+        badge: '防空洞型（刺蝟指數 95%）',
+        title: '防空洞型',
+        summary: '你的社交安全距離很明顯，只有你選擇開啟的門，才值得別人走進來。',
+        description: '你是那種默默把所有事情、情緒都自己扛完的超級獨立者。對你來說，只要你不主動打開門，就沒人能傷害你。',
+        avoid: ['突然登門拜訪或奪命連環call的人', '沒有邊界感、強行探問私人空間的人', '對情緒邊界視而不見的熱情干擾者'],
+        tips: ['設定清楚的接觸規則，無論是社交平台還是現實交際。', '允許自己在必要時關閉通知、隔離自己的情緒空間。', '在信任的人面前，慢慢練習讓步；這不是退讓，而是安全的選擇。']
+      },
+      {
+        range: [7, 10],
+        badge: '雙面鏡型（刺蝟指數 65%）',
+        title: '雙面鏡型',
+        summary: '你在人前看起來開朗，但回到自己的空間就立刻關機，這層玻璃替你反射外界的熱情。',
+        description: '你是典型的表面外向、內心孤獨。外界看到你可以跟每個人聊得很開心，但你把人際關係隔絕在玻璃之外。',
+        avoid: ['試圖刺探你精緻偽裝底下真實情緒的人', '自以為很懂你，卻忽略你真實需要的人', '把你當成永遠有空傾聽的情緒容器的人'],
+        tips: ['挑選少數幾個真正能看見你的人，和他們分享你的真實狀態。', '給自己留出回溫時間，不必每次社交後都立刻「恢復正常」。', '學習用溫柔的語氣告訴別人你的邊界，而不是讓焦慮取代你的選擇。']
+      },
+      {
+        range: [4, 6],
+        badge: '溫水泳池型（刺蝟指數 35%）',
+        title: '溫水泳池型',
+        summary: '你渴望連結，卻也可能因為太在乎別人的感受，而讓自己舒服度降低。',
+        description: '你習慣維持和諧、對他人幾乎沒有防備。常因為不想讓別人失望，而默默配合別人，導致自己內傷。',
+        avoid: ['把你的體貼當成理所當然的情緒吸血鬼', '無視你底線、只要你不拒絕就一路向前的人', '讓你感到委屈但又不好意思說不的人'],
+        tips: ['練習在安心的場合用簡單一句話表達需求。', '辨認哪些關係值得你付出更多，哪些關係只是消耗。', '把自己的邊界當成一種溫柔的自我照顧，而不是拒絕的罪惡。']
+      }
+    ];
+
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const introScreen = document.getElementById('intro-screen');
+    const quizCard = document.getElementById('quiz-card');
+    const resultCard = document.getElementById('result-card');
+    const questionCount = document.getElementById('question-count');
+    const questionText = document.getElementById('question-text');
+    const optionsEl = document.getElementById('options');
+    const progressBar = document.getElementById('progress-bar');
+    const resultBadge = document.getElementById('result-badge');
+    const resultTitle = document.getElementById('result-title');
+    const resultSummary = document.getElementById('result-summary');
+    const resultDescription = document.getElementById('result-description');
+    const resultAvoid = document.getElementById('result-avoid');
+    const resultTips = document.getElementById('result-tips');
+
+    let currentIndex = 0;
+    let score = 0;
+
+    const enterScreen = (element) => {
+      element.style.display = 'block';
+      requestAnimationFrame(() => {
+        element.style.opacity = '1';
+        element.style.transform = 'none';
+      });
+    };
+
+    const exitScreen = (element, callback) => {
+      element.style.opacity = '0';
+      element.style.transform = 'translateY(-12px)';
+      setTimeout(() => {
+        element.style.display = 'none';
+        if (callback) callback();
+      }, 320);
+    };
+
+    const updateProgress = () => {
+      const percent = (currentIndex / quizData.length) * 100;
+      progressBar.style.width = `${percent}%`;
+    };
+
+    const showQuestion = () => {
+      const data = quizData[currentIndex];
+      questionCount.textContent = `第 ${currentIndex + 1} / ${quizData.length} 題`;
+      questionText.textContent = data.question;
+      optionsEl.innerHTML = '';
+
+      data.options.forEach((option, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'option';
+        button.innerHTML = `<span>${String.fromCharCode(65 + index)}</span><span>${option.label}</span>`;
+        button.addEventListener('click', () => handleAnswer(option.value));
+        optionsEl.appendChild(button);
+      });
+    };
+
+    const handleAnswer = (value) => {
+      score += value;
+      currentIndex += 1;
+      updateProgress();
+
+      if (currentIndex >= quizData.length) {
+        showResult();
+        return;
+      }
+      exitScreen(quizCard, () => {
+        showQuestion();
+        enterScreen(quizCard);
+      });
+    };
+
+    const getResult = () => {
+      return results.find((item) => score >= item.range[0] && score <= item.range[1]) || results[2];
+    };
+
+    const showResult = () => {
+      const result = getResult();
+      resultBadge.textContent = result.badge;
+      resultTitle.textContent = result.title;
+      resultSummary.textContent = result.summary;
+      resultDescription.textContent = result.description;
+      resultAvoid.innerHTML = result.avoid.map((text) => `<li>${text}</li>`).join('');
+      resultTips.innerHTML = result.tips.map((text) => `<li>${text}</li>`).join('');
+
+      exitScreen(quizCard, () => {
+        enterScreen(resultCard);
+      });
+    };
+
+    const startQuiz = () => {
+      currentIndex = 0;
+      score = 0;
+      updateProgress();
+      showQuestion();
+      exitScreen(introScreen, () => {
+        enterScreen(quizCard);
+      });
+    };
+
+    const resetQuiz = () => {
+      currentIndex = 0;
+      score = 0;
+      updateProgress();
+      exitScreen(resultCard, () => {
+        enterScreen(introScreen);
+      });
+    };
+
+    startBtn.addEventListener('click', startQuiz);
+    restartBtn.addEventListener('click', resetQuiz);
+
+    updateProgress();
+  </script>
+</body>
+</html>
